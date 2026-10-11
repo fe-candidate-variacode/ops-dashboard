@@ -1,17 +1,33 @@
 import { memo } from 'react';
 import { formatLatency, formatPercent } from '../../../lib/formatters';
-import type { NodeMetric } from '../../telemetry/types';
-import { NodeStatusBadge } from './NodeStatusBadge';
+import { NodeStatusBadge } from '../../telemetry/components/NodeStatusBadge';
+import type { NodeId, NodeMetric } from '../../telemetry/types';
 import styles from './NodeRow.module.css';
 
+interface NodeRowProps {
+  node: NodeMetric;
+  selected: boolean;
+  onSelect: (nodeId: NodeId) => void;
+}
+
 /**
- * Memoised on the node object: the store keeps the same reference for nodes
- * that did not change, so only rows with new data re-render on each flush.
+ * Memoised: the store keeps the same node reference when nothing changed and
+ * `onSelect` is stable, so only rows with new data or a selection change re-render.
  */
-export const NodeRow = memo(function NodeRow({ node }: { node: NodeMetric }) {
+export const NodeRow = memo(function NodeRow({ node, selected, onSelect }: NodeRowProps) {
   return (
-    <tr className={styles.row} data-status={node.status}>
-      <th scope="row">{node.nodeId}</th>
+    <tr className={styles.row} data-status={node.status} data-selected={selected}>
+      <th scope="row">
+        <button
+          type="button"
+          className={styles.select}
+          aria-expanded={selected}
+          aria-controls="node-detail"
+          onClick={() => onSelect(node.nodeId)}
+        >
+          {node.nodeId}
+        </button>
+      </th>
       <td>
         <NodeStatusBadge status={node.status} />
       </td>

@@ -10,3 +10,35 @@
 .row[data-status='CRITICAL'] th {
   box-shadow: inset 3px 0 0 var(--color-critical);
 }
+
+.row {
+  position: relative;
+}
+
+.row:hover,
+.row:focus-within {
+  background: var(--color-surface-raised);
+}
+
+.row[data-selected='true'] {
+  background: color-mix(in srgb, var(--color-focus) 14%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px var(--color-focus);
+}
+
+/* The button's hit area is stretched over the whole row, so the row is
+   clickable with a mouse while keyboard users get a single real button. */
+.select {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.select::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}

@@ -1,6 +1,6 @@
 import { Badge } from '../../../design-system';
 import type { BadgeTone } from '../../../design-system';
-import type { NodeStatus } from '../../telemetry/types';
+import type { NodeStatus } from '../types';
 
 const PRESENTATION: Record<NodeStatus, { tone: BadgeTone; icon: string; label: string }> = {
   OK: { tone: 'ok', icon: '✓', label: 'OK' },

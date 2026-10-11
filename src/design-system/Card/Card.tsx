@@ -6,6 +6,7 @@ interface CardProps {
   children: ReactNode;
   /** Accessible name when rendered as a `section` landmark. */
   'aria-labelledby'?: string;
+  id?: string;
 }
 
 export function Card({ as: Tag = 'div', children, ...rest }: CardProps) {

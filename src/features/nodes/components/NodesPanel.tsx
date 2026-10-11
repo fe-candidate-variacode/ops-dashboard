@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo } from 'react';
 import { Button, Card, Select, SortableHeader, Table } from '../../../design-system';
 import type { SelectOption, SortDirection } from '../../../design-system';
 import { useTelemetryStore } from '../../telemetry/telemetryStore';
+import type { NodeId } from '../../telemetry/types';
 import { selectVisibleNodes } from '../nodesView';
 import type { SortKey, StatusFilter } from '../nodesView';
 import { useNodesViewStore } from '../nodesViewStore';
@@ -21,7 +22,12 @@ const SORTABLE_COLUMNS: readonly { key: SortKey; label: string; align: 'start' |
   { key: 'latencyMs', label: 'Latency', align: 'end' },
 ];
 
-export function NodesPanel() {
+interface NodesPanelProps {
+  selectedNodeId: NodeId | null;
+  onSelectNode: (nodeId: NodeId) => void;
+}
+
+export function NodesPanel({ selectedNodeId, onSelectNode }: NodesPanelProps) {
   const nodesById = useTelemetryStore((state) => state.nodesById);
   const statusFilter = useNodesViewStore((state) => state.statusFilter);
   const sort = useNodesViewStore((state) => state.sort);
@@ -96,7 +102,12 @@ export function NodesPanel() {
           </thead>
           <tbody>
             {visibleNodes.map((node) => (
-              <NodeRow key={node.nodeId} node={node} />
+              <NodeRow
+                key={node.nodeId}
+                node={node}
+                selected={node.nodeId === selectedNodeId}
+                onSelect={onSelectNode}
+              />
             ))}
           </tbody>
         </Table>

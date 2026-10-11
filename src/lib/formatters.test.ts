@@ -14,3 +14,11 @@ describe('formatters', () => {
     expect(formatLatency(null)).toBe('—');
   });
 });
+
+describe('formatTime', () => {
+  it('formats an epoch timestamp as HH:MM:SS', async () => {
+    const { formatTime } = await import('./formatters');
+
+    expect(formatTime(1_700_000_000_000)).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+  });
+});

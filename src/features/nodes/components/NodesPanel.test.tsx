@@ -1,4 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import userEvent from '@testing-library/user-event';
 import { makeNode } from '../../../test/factories';
 import { telemetryStore } from '../../telemetry/telemetryStore';
@@ -25,6 +26,17 @@ function renderedNodeIds(): string[] {
     .map((cell) => cell.textContent ?? '');
 }
 
+function renderPanel(props: Partial<Parameters<typeof NodesPanel>[0]> = {}): {
+  onSelectNode: ReturnType<typeof vi.fn>;
+} {
+  const onSelectNode = vi.fn();
+  const element: ReactElement = (
+    <NodesPanel selectedNodeId={null} onSelectNode={onSelectNode} {...props} />
+  );
+  render(element);
+  return { onSelectNode };
+}
+
 describe('NodesPanel', () => {
   afterEach(() => {
     telemetryStore.setState({ nodesById: {}, history: {} });
@@ -32,7 +44,7 @@ describe('NodesPanel', () => {
   });
 
   it('lists every node with its status as text', () => {
-    render(<NodesPanel />);
+    renderPanel();
     seed();
 
     expect(renderedNodeIds()).toEqual(['node-001', 'node-002', 'node-003', 'node-004', 'node-005']);
@@ -41,14 +53,14 @@ describe('NodesPanel', () => {
   });
 
   it('shows a waiting state before any telemetry arrives', () => {
-    render(<NodesPanel />);
+    renderPanel();
 
     expect(screen.getByText('Waiting for telemetry…')).toBeInTheDocument();
   });
 
   it('filters to critical nodes only', async () => {
     const user = userEvent.setup();
-    render(<NodesPanel />);
+    renderPanel();
     seed();
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'CRITICAL');
@@ -63,7 +75,7 @@ describe('NodesPanel', () => {
 
   it('sorts by CPU descending, then ascending, and exposes the order via aria-sort', async () => {
     const user = userEvent.setup();
-    render(<NodesPanel />);
+    renderPanel();
     seed();
 
     await user.click(screen.getByRole('button', { name: /cpu/i }));
@@ -87,7 +99,7 @@ describe('NodesPanel', () => {
 
   it('applies the filter and the sort together', async () => {
     const user = userEvent.setup();
-    render(<NodesPanel />);
+    renderPanel();
     seed();
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'CRITICAL');
@@ -98,7 +110,7 @@ describe('NodesPanel', () => {
 
   it('keeps the active sort while the stream updates values', async () => {
     const user = userEvent.setup();
-    render(<NodesPanel />);
+    renderPanel();
     seed();
     await user.click(screen.getByRole('button', { name: /latency/i }));
     expect(renderedNodeIds()[0]).toBe('node-001');
@@ -115,7 +127,7 @@ describe('NodesPanel', () => {
 
   it('offers a way out when the filter matches nothing', async () => {
     const user = userEvent.setup();
-    render(<NodesPanel />);
+    renderPanel();
     seed(FLEET.filter((node) => node.status !== 'WARNING'));
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'WARNING');
@@ -123,5 +135,40 @@ describe('NodesPanel', () => {
     expect(screen.getByText('No nodes match this filter.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Show all nodes' }));
     expect(renderedNodeIds()).toHaveLength(4);
+  });
+
+  it('selects a node with the mouse', async () => {
+    const user = userEvent.setup();
+    const { onSelectNode } = renderPanel();
+    seed();
+
+    await user.click(screen.getByRole('button', { name: 'node-001' }));
+
+    expect(onSelectNode).toHaveBeenCalledWith('node-001');
+  });
+
+  it('selects a node with the keyboard', async () => {
+    const user = userEvent.setup();
+    const { onSelectNode } = renderPanel();
+    seed();
+
+    screen.getByRole('button', { name: 'node-003' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(onSelectNode).toHaveBeenCalledWith('node-003');
+  });
+
+  it('marks only the selected row as expanded', () => {
+    renderPanel({ selectedNodeId: 'node-002' });
+    seed();
+
+    expect(screen.getByRole('button', { name: 'node-002' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'node-001' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 });
