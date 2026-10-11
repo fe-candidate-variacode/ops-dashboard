@@ -16,6 +16,11 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    files: ['cypress/**/*.ts', 'cypress.config.ts'],
+    extends: [...tseslint.configs.recommended],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
+  {
     files: ['*.config.{js,ts}', 'mock-server/**/*.js'],
     languageOptions: { globals: globals.node },
   },

@@ -21,3 +21,18 @@ services:
       mock-server:
         condition: service_healthy
     restart: unless-stopped
+
+  # Run with: docker compose --profile e2e up --build --abort-on-container-exit --exit-code-from cypress
+  cypress:
+    profiles: ['e2e']
+    build:
+      context: .
+      dockerfile: cypress/Dockerfile
+      args:
+        # Keep in sync with the exact `cypress` version in package.json.
+        CYPRESS_VERSION: 16.1.1
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      CYPRESS_BASE_URL: http://web
