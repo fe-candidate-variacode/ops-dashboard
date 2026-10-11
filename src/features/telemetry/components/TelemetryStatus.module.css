@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.item dt {
+  color: var(--color-text-muted);
+}
+
+.item dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.item dd[data-status='connected'] {
+  color: var(--color-ok);
+}
+
+.item dd[data-status='connecting'],
+.item dd[data-status='reconnecting'] {
+  color: var(--color-warning);
+}
+
+.item dd[data-status='closed'] {
+  color: var(--color-critical);
+}

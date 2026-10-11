@@ -1,28 +1,35 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import { makeNode } from '../test/factories';
+import { telemetryStore } from '../features/telemetry/telemetryStore';
 import { App } from './App';
 
-class FakeWebSocket {
-  onopen: (() => void) | null = null;
-  onmessage: ((event: MessageEvent<string>) => void) | null = null;
-  onclose: (() => void) | null = null;
-  close = vi.fn();
-}
-
 describe('App', () => {
-  beforeEach(() => {
-    vi.stubGlobal('WebSocket', FakeWebSocket);
-  });
-
   afterEach(() => {
-    vi.unstubAllGlobals();
+    telemetryStore.setState({ nodesById: {}, history: {}, connectionStatus: 'connecting' });
   });
 
-  it('renders the dashboard heading and the initial connection state', () => {
+  it('renders the heading and the connection state', () => {
     render(<App />);
 
     expect(
       screen.getByRole('heading', { name: /fleet operations dashboard/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/connecting/i)).toBeInTheDocument();
+    expect(screen.getByText('Connecting')).toBeInTheDocument();
+  });
+
+  it('summarises the fleet from the store', () => {
+    render(<App />);
+
+    act(() => {
+      telemetryStore.getState().applyBatch({
+        replace: true,
+        nodes: [
+          makeNode({ nodeId: 'a', status: 'CRITICAL' }),
+          makeNode({ nodeId: 'b', status: 'OK' }),
+        ],
+      });
+    });
+
+    expect(screen.getByText(/2 nodes · 1 critical/)).toBeInTheDocument();
   });
 });

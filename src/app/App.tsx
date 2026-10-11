@@ -1,15 +1,19 @@
-import { useServerProbe } from './useServerProbe';
+import { useMemo } from 'react';
+import { TelemetryStatus } from '../features/telemetry/components/TelemetryStatus';
+import { computeAggregates } from '../features/telemetry/aggregates';
+import { useTelemetryStore } from '../features/telemetry/telemetryStore';
 
 export function App() {
-  const { status, lastMessage } = useServerProbe();
+  const nodesById = useTelemetryStore((state) => state.nodesById);
+  const aggregates = useMemo(() => computeAggregates(Object.values(nodesById)), [nodesById]);
 
   return (
     <main>
       <h1>Fleet Operations Dashboard</h1>
+      <TelemetryStatus />
       <p>
-        Mock server connection: <strong>{status}</strong>
+        {aggregates.total} nodes · {aggregates.critical} critical
       </p>
-      {lastMessage && <pre>{lastMessage}</pre>}
     </main>
   );
 }

@@ -3,6 +3,9 @@ services:
     build: ./mock-server
     environment:
       PORT: 8081
+      NODE_COUNT: ${NODE_COUNT:-200}
+      TICK_MS: ${TICK_MS:-100}
+      SEED: ${SEED:-20240611}
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8081/healthz']
       interval: 5s
