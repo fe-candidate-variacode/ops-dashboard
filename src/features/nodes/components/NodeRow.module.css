@@ -1,0 +1,12 @@
+.row th {
+  font-weight: 500;
+  text-align: start;
+}
+
+.row[data-status='CRITICAL'] {
+  background: color-mix(in srgb, var(--color-critical) 10%, transparent);
+}
+
+.row[data-status='CRITICAL'] th {
+  box-shadow: inset 3px 0 0 var(--color-critical);
+}

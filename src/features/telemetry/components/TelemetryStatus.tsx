@@ -20,19 +20,23 @@ const STATUS_ICON: Record<ConnectionStatus, string> = {
 export function TelemetryStatus() {
   const status = useTelemetryStore((state) => state.connectionStatus);
   const updatesPerSecond = useTelemetryStore((state) => state.updatesPerSecond);
+  const isStale = status === 'reconnecting' || status === 'closed';
 
   return (
-    <dl className={styles.root}>
-      <div className={styles.item}>
-        <dt>Connection</dt>
-        <dd data-status={status}>
-          <span aria-hidden="true">{STATUS_ICON[status]}</span> {STATUS_LABEL[status]}
-        </dd>
-      </div>
-      <div className={styles.item}>
-        <dt>Updates/s</dt>
-        <dd>{updatesPerSecond}</dd>
-      </div>
-    </dl>
+    <div className={styles.root}>
+      <dl className={styles.list}>
+        <div className={styles.item}>
+          <dt>Connection</dt>
+          <dd data-status={status}>
+            <span aria-hidden="true">{STATUS_ICON[status]}</span> {STATUS_LABEL[status]}
+          </dd>
+        </div>
+        <div className={styles.item}>
+          <dt>Updates/s</dt>
+          <dd>{updatesPerSecond}</dd>
+        </div>
+      </dl>
+      {isStale && <p className={styles.stale}>Showing last known data</p>}
+    </div>
   );
 }

@@ -1,5 +1,12 @@
 .root {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.list {
+  display: flex;
   gap: var(--space-4);
   margin: 0;
 }
@@ -29,4 +36,10 @@
 
 .item dd[data-status='closed'] {
   color: var(--color-critical);
+}
+
+.stale {
+  margin: 0;
+  color: var(--color-warning);
+  font-size: var(--font-size-sm);
 }

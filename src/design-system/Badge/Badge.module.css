@@ -1,0 +1,31 @@
+.badge {
+  --badge-color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--badge-color);
+  border-radius: 999px;
+  color: var(--badge-color);
+  background: color-mix(in srgb, var(--badge-color) 14%, var(--color-surface));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge[data-tone='ok'] {
+  --badge-color: var(--color-ok);
+}
+
+.badge[data-tone='warning'] {
+  --badge-color: var(--color-warning);
+}
+
+.badge[data-tone='critical'] {
+  --badge-color: var(--color-critical);
+}
+
+.icon {
+  font-size: 0.85em;
+}

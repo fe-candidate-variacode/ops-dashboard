@@ -8,28 +8,26 @@ describe('App', () => {
     telemetryStore.setState({ nodesById: {}, history: {}, connectionStatus: 'connecting' });
   });
 
-  it('renders the heading and the connection state', () => {
+  it('renders the heading, connection state and main regions', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: /fleet operations dashboard/i }),
-    ).toBeInTheDocument();
+      screen.getByRole('heading', { level: 1, name: /fleet operations dashboard/i }),
+    ).toBeVisible();
     expect(screen.getByText('Connecting')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Fleet overview' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Nodes' })).toBeInTheDocument();
   });
 
-  it('summarises the fleet from the store', () => {
+  it('flags stale data when the connection drops', () => {
     render(<App />);
 
     act(() => {
-      telemetryStore.getState().applyBatch({
-        replace: true,
-        nodes: [
-          makeNode({ nodeId: 'a', status: 'CRITICAL' }),
-          makeNode({ nodeId: 'b', status: 'OK' }),
-        ],
-      });
+      telemetryStore.getState().applyBatch({ replace: true, nodes: [makeNode()] });
+      telemetryStore.getState().setConnectionStatus('reconnecting');
     });
 
-    expect(screen.getByText(/2 nodes · 1 critical/)).toBeInTheDocument();
+    expect(screen.getByText('Reconnecting')).toBeInTheDocument();
+    expect(screen.getByText('Showing last known data')).toBeInTheDocument();
   });
 });
