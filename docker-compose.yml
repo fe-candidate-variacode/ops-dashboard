@@ -13,14 +13,46 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # Production image: `docker compose up` (or `docker-compose up`).
   web:
-    build: .
+    build:
+      context: .
+      target: runtime
     ports:
       - '3000:80'
     depends_on:
       mock-server:
         condition: service_healthy
     restart: unless-stopped
+
+  # Development with hot reload: docker compose --profile dev up --build  ->  http://localhost:5173
+  dev:
+    profiles: ['dev']
+    build:
+      context: .
+      target: dev
+    ports:
+      - '5173:5173'
+    environment:
+      # Inside the compose network the mock server is reachable by service name.
+      WS_PROXY_TARGET: ws://mock-server:8081
+      # Opt in when file events do not cross the bind mount (some Docker setups).
+      VITE_USE_POLLING: ${VITE_USE_POLLING:-}
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+    depends_on:
+      mock-server:
+        condition: service_healthy
+
+  # Unit and component tests: docker compose --profile test run --build --rm unit
+  unit:
+    profiles: ['test']
+    build:
+      context: .
+      target: test
 
   # Run with: docker compose --profile e2e up --build --abort-on-container-exit --exit-code-from cypress
   cypress:

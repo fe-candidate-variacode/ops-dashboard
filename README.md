@@ -21,11 +21,25 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for design decisions, trade-offs and how 
 docker compose up --build
 ```
 
+`docker-compose up` (hyphenated, as in older installations) works the same way and builds the
+images automatically on first run.
+
 Open <http://localhost:3000>. Two containers start: `web` (nginx serving the built app and
 proxying `/ws`) and `mock-server` (the simulated fleet). `web` waits for the mock server's
 healthcheck.
 
 Stop with `Ctrl+C`, then `docker compose down`.
+
+### Docker environments
+
+One multi-stage `Dockerfile`, selected per service with `target`:
+
+| Command                                                   | Target    | Purpose                         |
+| --------------------------------------------------------- | --------- | ------------------------------- |
+| `docker compose up --build`                               | `runtime` | Production: nginx on :3000      |
+| `docker compose --profile dev up --build`                 | `dev`     | Vite dev server with HMR, :5173 |
+| `docker compose --profile test run --build --rm unit`     | `test`    | Unit and component tests        |
+| `docker compose --profile e2e up --build ...` (see below) | n/a       | Cypress end-to-end tests        |
 
 ### Mock server configuration
 
@@ -47,12 +61,20 @@ With the default seed at least three nodes are always `CRITICAL`.
 
 ### Unit and component tests
 
+In Docker, with no local Node or `node_modules` required:
+
+```bash
+docker compose --profile test run --build --rm unit
+```
+
+Or locally:
+
 ```bash
 npm ci
 npm test
 ```
 
-Runs Vitest with React Testing Library (including the mock server's simulation tests).
+Both run Vitest with React Testing Library (including the mock server's simulation tests).
 
 ### End-to-end tests
 
@@ -64,7 +86,18 @@ Cypress runs inside Docker against the production build behind nginx. The comman
 Cypress's exit code, so it can gate CI. The Cypress image tag in `docker-compose.yml` must match
 the `cypress` version pinned in `package.json`; the build fails with a clear message otherwise.
 
-## Local development
+## Development with hot reload (Docker)
+
+```bash
+docker compose --profile dev up --build
+```
+
+Open <http://localhost:5173>. This runs the Vite dev server in a container with `src/` mounted
+from the host, so edits hot-reload, and `/ws` is proxied to the `mock-server` service. If your
+Docker setup does not deliver file-change events through the bind mount, enable polling with
+`VITE_USE_POLLING=1 docker compose --profile dev up --build`.
+
+## Local development (without Docker)
 
 ```bash
 npm ci

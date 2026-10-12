@@ -189,3 +189,25 @@ What changes first, roughly in order of payoff:
 
 None of these require changing the dependency direction: the pipeline already isolates transport,
 buffering, store and views, so each can be swapped independently.
+
+## 10. Containers and environments
+
+A single multi-stage `Dockerfile` serves every environment; compose selects a `target` per service.
+
+```
+deps ──┬─► dev      Vite dev server + HMR (sources bind-mounted)
+       ├─► test     npm test
+       └─► build ──► runtime   nginx serving the built SPA (default, last stage)
+```
+
+- `deps` installs dependencies in a layer keyed only on the lockfile, so source edits do not
+  re-install anything. BuildKit builds only the stages the requested target needs, so the
+  production image never contains the dev server or test tooling.
+- The production image has no Node runtime: the runtime stage is `nginx` plus static files.
+  nginx also proxies `/ws`, so the browser only ever talks to one origin.
+- The dev container reaches the mock server by service name through the `WS_PROXY_TARGET`
+  environment variable; without it the Vite config falls back to `localhost:8081` for local runs.
+- Native file events are used for hot reload. Polling is an opt-in (`VITE_USE_POLLING`) because
+  it costs CPU and is only needed for bind mounts that do not deliver events.
+- The mock server and Cypress have their own images (`mock-server/Dockerfile`,
+  `cypress/Dockerfile`); the latter fails the build when its tag drifts from `package.json`.
